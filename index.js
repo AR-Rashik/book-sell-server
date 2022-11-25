@@ -24,6 +24,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const categoriesCollection = client.db("bookSell").collection("categories");
+    const booksCollection = client.db("bookSell").collection("allBooks");
 
     // get all the categories from db.
     app.get("/categories", async (req, res) => {
@@ -31,6 +32,13 @@ async function run() {
       const cursor = categoriesCollection.find(query);
       const categories = await cursor.toArray();
       res.send(categories);
+    });
+
+    app.get("/categories/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { category_id: id };
+      const cursor = await booksCollection.find(query).toArray();
+      return res.send(cursor);
     });
   } finally {
   }
