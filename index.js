@@ -14,17 +14,28 @@ app.use(express.json());
 
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.j6uwcgb.mongodb.net/?retryWrites=true&w=majority`;
-console.log(uri);
+// console.log(uri);
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
-client.connect((err) => {
-  const collection = client.db("test").collection("devices");
-  // perform actions on the collection object
-  client.close();
-});
+
+async function run() {
+  try {
+    const categoriesCollection = client.db("bookSell").collection("categories");
+
+    // get all the categories from db.
+    app.get("/categories", async (req, res) => {
+      const query = {};
+      const cursor = categoriesCollection.find(query);
+      const categories = await cursor.toArray();
+      res.send(categories);
+    });
+  } finally {
+  }
+}
+run().catch((error) => console.error("Database connection error", error));
 
 app.get("/", (req, res) => {
   res.send("Book sell server is running");
