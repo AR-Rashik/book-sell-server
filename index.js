@@ -26,6 +26,7 @@ async function run() {
     const categoriesCollection = client.db("bookSell").collection("categories");
     const booksCollection = client.db("bookSell").collection("allBooks");
     const bookingsCollection = client.db("bookSell").collection("bookings");
+    const usersCollection = client.db("bookSell").collection("users");
 
     // get all the categories from db.
     app.get("/categories", async (req, res) => {
@@ -64,6 +65,13 @@ async function run() {
       const booking = req.body;
       console.log(booking);
       const result = await bookingsCollection.insertOne(booking);
+      res.send(result);
+    });
+
+    // post user or seller data.
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const result = await usersCollection.insertOne(user);
       res.send(result);
     });
   } finally {
