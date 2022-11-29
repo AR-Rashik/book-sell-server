@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const { MongoClient, ServerApiVersion } = require("mongodb");
+const jwt = require("jsonwebtoken");
 
 require("dotenv").config();
 
@@ -11,8 +13,6 @@ app.use(cors());
 app.use(express.json());
 
 // mongodb
-
-const { MongoClient, ServerApiVersion } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.j6uwcgb.mongodb.net/?retryWrites=true&w=majority`;
 // console.log(uri);
 const client = new MongoClient(uri, {
@@ -20,6 +20,24 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
+
+// jwt verify middleware
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send("unauthorized access");
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ message: "forbidden access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
 
 async function run() {
   try {
@@ -50,6 +68,45 @@ async function run() {
       const query = { seller_email: email };
       const products = await booksCollection.find(query).toArray();
       res.send(products);
+    });
+
+    // get all buyers from db
+    // app.get("/allbuyers", async (req, res) => {
+    //   const query = {};
+    //   const cursor = usersCollection.find(query);
+    //   const users = await cursor.toArray();
+    //   res.send(users);
+    // });
+
+    // get my orders by email address from db
+    app.get("/myorders", verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      // console.log(req.headers.authorization);
+
+      const decodedEmail = req.decoded.email;
+
+      if (email !== decodedEmail) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+
+      const query = { email: email };
+      const orders = await bookingsCollection.find(query).toArray();
+      res.send(orders);
+    });
+
+    // jwt
+    app.get("/jwt", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      // console.log(user);
+      if (user) {
+        const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, {
+          expiresIn: "1h",
+        });
+        return res.send({ accessToken: token });
+      }
+      res.status(403).send({ accessToken: "" });
     });
 
     // post add product item to db
