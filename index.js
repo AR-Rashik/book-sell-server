@@ -43,13 +43,21 @@ async function run() {
       return res.send(cursor);
     });
 
+    // post add product item to db
+    app.post("/addproduct", async (req, res) => {
+      const product = req.body;
+      console.log(product);
+      const result = await booksCollection.insertOne(product);
+      res.send(result);
+    });
+
     //  post bookings data to db.
-    app.post("/bookings", async(req, res) => {
+    app.post("/bookings", async (req, res) => {
       const booking = req.body;
       console.log(booking);
       const result = await bookingsCollection.insertOne(booking);
       res.send(result);
-    })
+    });
   } finally {
   }
 }
