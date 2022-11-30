@@ -125,6 +125,14 @@ async function run() {
       res.send({ isSeller: user?.role === "seller" });
     });
 
+    //get user is buyer or not
+    app.get("/users/buyer/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      res.send({ isBuyer: user?.role === "buyer" });
+    });
+
     // post add product item to db
     app.post("/addproduct", async (req, res) => {
       const product = req.body;
