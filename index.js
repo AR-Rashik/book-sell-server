@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
 
 require("dotenv").config();
@@ -71,12 +71,12 @@ async function run() {
     });
 
     // get all buyers from db
-    // app.get("/allbuyers", async (req, res) => {
-    //   const query = {};
-    //   const cursor = usersCollection.find(query);
-    //   const users = await cursor.toArray();
-    //   res.send(users);
-    // });
+    app.get("/allbuyers", async (req, res) => {
+      const query = {};
+      const cursor = usersCollection.find(query);
+      const users = await cursor.toArray();
+      res.send(users);
+    });
 
     // get my orders by email address from db
     app.get("/myorders", verifyJWT, async (req, res) => {
@@ -107,6 +107,14 @@ async function run() {
         return res.send({ accessToken: token });
       }
       res.status(403).send({ accessToken: "" });
+    });
+
+    //get user is admin or not
+    app.get("/users/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      res.send({ isAdmin: user?.role === "admin" });
     });
 
     // post add product item to db
